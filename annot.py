@@ -1,4 +1,5 @@
-# ROI annotation tool
+# -*- coding: utf-8 -*-
+# # ROI annotation tool
 import sys
 import os
 import shutil
@@ -14,7 +15,7 @@ g_colorTbl = [
     (  0,255,  0), (255,255,  0), (  0,255,255), (255,255,255) 
 ]
 
-def dispCursor(img, x, y, scale=1.0):
+def dispCursor(img, x, y, scale=1.0, cursorInfoFlag=False):
     h, w = img.shape[:1+1]
     if x>=w: x=w-1
     if y>=h: y=h-1
@@ -22,9 +23,10 @@ def dispCursor(img, x, y, scale=1.0):
     negCol = (int(255-color[0]), int(255-color[1]), int(255-color[2]))
     cv2.line(img, (0,y), (img.shape[1],y), negCol, 1)
     cv2.line(img, (x,0), (x,img.shape[0]), negCol, 1)
-    string = '({},{})-{}'.format(int(x*scale), int(y*scale), color)
-    cv2.putText(img, string, (x,y), cv2.FONT_HERSHEY_PLAIN, 1, (  0,  0,  0), 3)
-    cv2.putText(img, string, (x,y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
+    if cursorInfoFlag==True:
+        string = '({},{})-{}'.format(int(x*scale), int(y*scale), color)
+        cv2.putText(img, string, (x,y), cv2.FONT_HERSHEY_PLAIN, 1, (  0,  0,  0), 3)
+        cv2.putText(img, string, (x,y), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
     return img
 
 def dispRectangle(img, p0, p1, color):
@@ -58,8 +60,16 @@ def onMouse(event, x, y, flags, param):
 
 def fileNameDecode(fileName):
     base, ext = os.path.splitext(fileName)
-    base, w, h, x, y = re.findall(r'(.*)_([0-9]+)x([0-9]+)\+([0-9]+)\-([0-9]+)', base)[0]
-    return w, h, x, y, base+ext
+    grep = re.findall(r'(.*)_([0-9]+)x([0-9]+)\+([0-9]+)\-([0-9]+)', base)
+    if len(grep)>0:
+        base, w, h, x, y = grep[0]
+    else:
+        base=base
+        w=-1
+        h=-1
+        x=-1
+        y=-1
+    return int(w), int(h), int(x), int(y), base+ext
 
 def fileNameEncode(fileName, w, h, x, y):
     base, ext = os.path.splitext(fileName)
@@ -93,6 +103,7 @@ def main(args):
 
     updateFlag=True
     drawingFlag=False
+    cursorInfoFlag=True
     x0=0
     y0=0
     color=0
@@ -105,7 +116,7 @@ def main(args):
             srcImg = cv2.imread(file)
             srcImg, scale = fitImage(srcImg, 1920, 1080)
             updateFlag=False
-        dispImg = dispCursor(srcImg.copy(), g_mouseX, g_mouseY, scale)
+        dispImg = dispCursor(srcImg.copy(), g_mouseX, g_mouseY, scale, cursorInfoFlag)
         if drawingFlag==True:
             dispImg = dispRectangle(dispImg, (x0,y0), (g_mouseX, g_mouseY), color)
         dispImg = dispROIs(dispImg, annotation[annotIdx])
@@ -126,28 +137,29 @@ def main(args):
                 clsId = key-ord('0')
                 roi = [x0, y0, g_mouseX, g_mouseY]
                 annotation[annotIdx]['roi_{}_{}'.format(roiIdx, clsId)] = roi
-                #print(annotation[annotIdx])
+                print('marked a ROI \'{} {}\''.format(clsId, roi))
 
         if key==ord('u'):
             delKey = list(annotation[annotIdx].keys())[-1]
             if 'roi' in delKey:
+                roi = annotation[annotIdx][delKey]
                 del annotation[annotIdx][delKey]
-                print('removed \'{}\''.format(delKey))
+                print('removed \'{} {}\''.format(delKey, roi))
             else:
-                print('no ROIs to remove')
+                print('no ROI to remove')
 
         if key==ord('q'):
             annotIdx-=1
             if annotIdx<0:
                 annotIdx = 0
             updateFlag=True
-            print('next image')
+            print('previous image \'{}\''.format(annotation[annotIdx]['fname']))
         if key==ord('w'):
             annotIdx+=1
             if annotIdx>=len(files):
                 annotIdx=len(files)-1
             updateFlag=True
-            print('previous image')
+            print('next image \'{}\''.format(annotation[annotIdx]['fname']))
         
         if key==ord('W'):
             try:
@@ -171,14 +183,25 @@ def main(args):
                         inPath = os.path.join(args.input, fname)
                         outPath = os.path.join(args.output, str(clsId), fileNameEncode(fname, x1-x0+1, y1-y0+1, x0, y0))
                         shutil.copy(inPath, outPath)
+            print('Wrote the current ROI data to the output directory {}'.format(args.output))
+        
+        if key==ord('c'):
+            cursorInfoFlag = True if cursorInfoFlag==False else False
 
-        #if key!=-1:
-        #    print(key)
+def keyHelp():
+    print('q: previous image')
+    print('w: next image')
+    print('u: undo (remove the last ROI in current image)')
+    print('0-9: start / end of ROI (hit numeric key to start drawing ROI and hit numeric key to finish drawing. no need to keep pressing)')
+    print('W: (capital) write annotation data to the output directory')
+    print('c: toggle cursor info (x, y, color on the cursor)')
+    print('ESC: exit program')
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='input image directory')
     parser.add_argument('-o', '--output', type=str, required=True, help='data output directory')
     args = parser.parse_args()
+
+    print(keyHelp())
     main(args)
