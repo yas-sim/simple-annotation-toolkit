@@ -23,12 +23,12 @@ def main(args):
         lines = fi.readlines()
         annots = {}
         for line in lines:
-            fname, clsid, x0, y0, x1, y1, iw, ih= line.split(',')
+            fname, clsid, x0, y0, x1, y1, iw, ih = line.split(',')
             obj = [clsid, x0, y0, x1, y1]
             if fname in annots:
                 annots[fname]['objects'].append(obj)
             else:
-                annots[fname]={'width':iw, 'height':ih, 'objects':[]}
+                annots[fname]={'width':iw, 'height':ih, 'objects':[obj]}
     with open(args.output, 'wt', encoding='utf_8') as fo:
         fo.write('<annotation>\n')
         for annot in annots:

@@ -147,7 +147,7 @@ def main(args):
             dispImg = dispRectangle(dispImg, (x0,y0), (g_mouseX, g_mouseY), color)
         dispImg = dispROIs(dispImg, annotation[annotIdx])
         cv2.imshow('work', dispImg)
-        key = cv2.waitKey(100)
+        key = cv2.waitKey(30)
 
         if key==27: break
 
