@@ -1,6 +1,6 @@
 # Simple Annotation Toolkit (for Object Detection Task)
 This is the most simple ROI annotation toolkit for the object detection task. This toolkit consists of multiple simple tools. User can accomplish the annotation task by utilizing those tools.  
-Each tool does single function to keep them simple. You can modify those tools to meet your needs.  
+Each tool does only single function, so the tools are simple. You can modify those tools to meet your needs if needed.  
 The intermediate data or representation are also very simple.  
 This tool doesn't use any (complex and diffucult) database. It simply uses the file system to store and represent the ROI data. User can change or tweak annotation information intuitively by moving, or renaming the directory or the file name.  
 
