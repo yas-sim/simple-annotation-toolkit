@@ -11,6 +11,7 @@ This tool doesn't use any (complex and diffucult) database. It simply uses the f
 
 ![work-flow](./resources/work-flow.png)
 
+![annot](./resources/annot.png)
 
 ## How to Run
 
