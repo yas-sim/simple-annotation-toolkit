@@ -78,13 +78,20 @@ def fileNameEncode(fileName, w, h, x, y):
 
 def fitImage(img, maxW=1920, maxH=1080):
     h,w,_ = img.shape
-    if w>maxW:  scaleX = w/maxW
-    else:       scaleX = 1.0
-    if h>maxH:  scaleY = h/maxH
-    else:       scaleY = 1.0
-    scale = scaleX if scaleX>scaleY else scaleY            
+    if h>maxH or w>maxW:
+        # shrink
+        if w>maxW:  scaleX = w/maxW
+        else:       scaleX = 1.0
+        if h>maxH:  scaleY = h/maxH
+        else:       scaleY = 1.0
+        scale = scaleX if scaleX>scaleY else scaleY
+    else:
+        # enlarge
+        scaleX = 1./(maxW//w)
+        scaleY = 1./(maxH//h)
+        scale = scaleX if scaleX>scaleY else scaleY
     if scale != 1.0:
-        img = cv2.resize(img, None, fx=1./scale, fy=1./scale)
+        img = cv2.resize(img, None, fx=1./scale, fy=1./scale, interpolation=cv2.INTER_CUBIC)
     return img, scale
 
 
@@ -109,8 +116,9 @@ def main(args):
         print('no file is found in {}'.format(inputDir), file=sys.stderr)
         sys.exit(-1)
     annotIdx = 0
+    print(annotation)
 
-    print(keyHelp())
+    keyHelp()
 
     cv2.namedWindow('work')
     cv2.setMouseCallback('work', onMouse)
@@ -131,9 +139,9 @@ def main(args):
             if srcImg is None:
                 srcImg = np.zeros((300,300,3), dtype=np.uint8)  # dummy image
                 cv2.putText(srcImg, 'not an image', (0,32), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
-            srcImg, scale = fitImage(srcImg, 1920, 1080)
+            srcImg, scale = fitImage(srcImg, maxW, maxH)
             updateFlag=False
-        
+
         dispImg = dispCursor(srcImg.copy(), g_mouseX, g_mouseY, scale, cursorInfoFlag)
         if drawingFlag==True:
             dispImg = dispRectangle(dispImg, (x0,y0), (g_mouseX, g_mouseY), color)
@@ -174,8 +182,8 @@ def main(args):
             print('previous image \'{}\''.format(annotation[annotIdx]['fname']))
         if key==ord('w'):
             annotIdx+=1
-            if annotIdx>=len(files):
-                annotIdx=len(files)-1
+            if annotIdx>=len(annotation):
+                annotIdx=len(annotation)-1
             updateFlag=True
             print('next image \'{}\''.format(annotation[annotIdx]['fname']))
         
