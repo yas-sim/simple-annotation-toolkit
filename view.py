@@ -4,6 +4,7 @@ import sys
 import re
 import glob
 
+import numpy as np
 import cv2
 import argparse
 
@@ -22,17 +23,27 @@ def fileNameDecode(fileName):
 
 def fitImage(img, maxW=1920, maxH=1080):
     h,w,_ = img.shape
-    if w>maxW:  scaleX = w/maxW
-    else:       scaleX = 1.0
-    if h>maxH:  scaleY = h/maxH
-    else:       scaleY = 1.0
-    scale = scaleX if scaleX>scaleY else scaleY            
+    if h>maxH or w>maxW:
+        # shrink
+        if w>maxW:  scaleX = w/maxW
+        else:       scaleX = 1.0
+        if h>maxH:  scaleY = h/maxH
+        else:       scaleY = 1.0
+        scale = scaleX if scaleX>scaleY else scaleY
+    else:
+        # enlarge
+        scaleX = 1./(maxW//w)
+        scaleY = 1./(maxH//h)
+        scale = scaleX if scaleX>scaleY else scaleY
     if scale != 1.0:
-        img = cv2.resize(img, None, fx=1./scale, fy=1./scale)
+        img = cv2.resize(img, None, fx=1./scale, fy=1./scale, interpolation=cv2.INTER_CUBIC)
     return img, scale
 
 def displayPicture(fileName):
     img = cv2.imread(fileName)
+    if img is None:
+        img = np.zeros((300,300,3), dtype=np.uint8)  # dummy image
+        cv2.putText(img, 'not an image', (0,32), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
     img, scale = fitImage(img, 1920, 1080)
     w,h,x,y,_ = fileNameDecode(fileName)
     if w!=-1:
@@ -51,6 +62,7 @@ def keyHelp():
 
 def main(args):
     if args.input!=None:
+        print('hit any key to exit')
         displayPicture(args.input)
 
     if args.directory!=None:

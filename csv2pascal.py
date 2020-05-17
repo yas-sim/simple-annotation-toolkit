@@ -38,7 +38,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='input csv file name')
-    parser.add_argument('-o', '--output', type=str, required=True, help='output pascal voc file name')
-    parser.add_argument('--folder', type=str, default='__FOLDER__', required=False, help='folder name')
+    parser.add_argument('-o', '--output', type=str, required=True, help='output pascal voc XML file name')
+    parser.add_argument('--folder', type=str, default='__FOLDER__', required=False, help='folder name (default=\'__FOLDER__\')')
     args = parser.parse_args()
     main(args)

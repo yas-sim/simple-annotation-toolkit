@@ -202,10 +202,7 @@ def main(args):
                         y0*=scale
                         x1*=scale
                         y1*=scale
-                        try:
-                            os.mkdir(os.path.join(args.output, str(clsId)))
-                        except FileExistsError:
-                            pass
+                        os.makedirs(os.path.join(args.output, str(clsId)), exist_ok=True)
                         inPath = os.path.join(args.input, fname)
                         outPath = os.path.join(args.output, str(clsId), fileNameEncode(fname, x1-x0+1, y1-y0+1, x0, y0))
                         shutil.copy(inPath, outPath)
