@@ -88,15 +88,29 @@ def fitImage(img, maxW=1920, maxH=1080):
     return img, scale
 
 
+
+def keyHelp():
+    print('q: previous image')
+    print('w: next image')
+    print('u: undo (remove the last ROI in current image)')
+    print('0-9: start / end of ROI (hit numeric key to start drawing ROI and hit numeric key to finish drawing. no need to keep pressing)')
+    print('W: (capital) write annotation data to the output directory')
+    print('c: toggle cursor info (x, y, color on the cursor)')
+    print('ESC: exit program')
+
+
 def main(args):
     global g_mouseX, g_mouseY
 
     inputDir = args.input
     files = os.listdir(inputDir)
-    print(args.input, files)
-    annotation = [ { 'fname':file } for file in files ]
-
+    annotation = [ { 'fname':file } for file in files if os.path.isfile(os.path.join(inputDir, file))==True]
+    if len(annotation)==0:
+        print('no file is found in {}'.format(inputDir), file=sys.stderr)
+        sys.exit(-1)
     annotIdx = 0
+
+    print(keyHelp())
 
     cv2.namedWindow('work')
     cv2.setMouseCallback('work', onMouse)
@@ -114,15 +128,19 @@ def main(args):
         if updateFlag==True:
             file = os.path.join(inputDir, annotation[annotIdx]['fname'])
             srcImg = cv2.imread(file)
+            if srcImg is None:
+                srcImg = np.zeros((300,300,3), dtype=np.uint8)  # dummy image
+                cv2.putText(srcImg, 'not an image', (0,32), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 1)
             srcImg, scale = fitImage(srcImg, 1920, 1080)
             updateFlag=False
+        
         dispImg = dispCursor(srcImg.copy(), g_mouseX, g_mouseY, scale, cursorInfoFlag)
         if drawingFlag==True:
             dispImg = dispRectangle(dispImg, (x0,y0), (g_mouseX, g_mouseY), color)
         dispImg = dispROIs(dispImg, annotation[annotIdx])
-
         cv2.imshow('work', dispImg)
-        key = cv2.waitKey(10)
+        key = cv2.waitKey(100)
+
         if key==27: break
 
         if key>=ord('0') and key<=ord('9'):
@@ -188,20 +206,10 @@ def main(args):
         if key==ord('c'):
             cursorInfoFlag = True if cursorInfoFlag==False else False
 
-def keyHelp():
-    print('q: previous image')
-    print('w: next image')
-    print('u: undo (remove the last ROI in current image)')
-    print('0-9: start / end of ROI (hit numeric key to start drawing ROI and hit numeric key to finish drawing. no need to keep pressing)')
-    print('W: (capital) write annotation data to the output directory')
-    print('c: toggle cursor info (x, y, color on the cursor)')
-    print('ESC: exit program')
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', type=str, required=True, help='input image directory')
     parser.add_argument('-o', '--output', type=str, required=True, help='data output directory')
     args = parser.parse_args()
 
-    print(keyHelp())
     main(args)

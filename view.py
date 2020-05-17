@@ -54,11 +54,11 @@ def main(args):
         displayPicture(args.input)
 
     if args.directory!=None:
-        print(keyHelp())
+        keyHelp()
 
+        print('Checking image files...', end='', flush=True)
         tmp_files = glob.glob(args.directory+'/**', recursive=True)
         # Check whether image file or not
-        print('Checking image files...', end='')
         files = []
         for file in tmp_files:
             if os.path.isfile(file):
