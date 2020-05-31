@@ -38,7 +38,7 @@ def dispROIs(img, rois):
     global g_colorTbl
     for roi in rois:
         if 'roi' in roi:
-            x0,y0,x1,y1 = rois[roi]
+            x0,y0,x1,y1,_ = rois[roi]
             _, roiId, clsId = roi.split('_')
             roiId = int(roiId)
             clsId = int(clsId)
@@ -78,18 +78,13 @@ def fileNameEncode(fileName, w, h, x, y):
 
 def fitImage(img, maxW=1920, maxH=1080):
     h,w,_ = img.shape
-    if h>maxH or w>maxW:
-        # shrink
-        if w>maxW:  scaleX = w/maxW
-        else:       scaleX = 1.0
-        if h>maxH:  scaleY = h/maxH
-        else:       scaleY = 1.0
-        scale = scaleX if scaleX>scaleY else scaleY
-    else:
-        # enlarge
-        scaleX = 1./(maxW//w)
-        scaleY = 1./(maxH//h)
-        scale = scaleX if scaleX>scaleY else scaleY
+    scaleX = maxW / w
+    scaleY = maxH / h
+    if scaleX>1 or scaleY>1:    # Shrink
+        scale = 1/min(scaleX, scaleY)
+    else:                       # Enlarge
+        scale = 1/max(scaleX, scaleY)
+
     if scale != 1.0:
         img = cv2.resize(img, None, fx=1./scale, fy=1./scale, interpolation=cv2.INTER_CUBIC)
     return img, scale
@@ -130,8 +125,8 @@ def main(args):
     y0=0
     color=0
     scale=1
-    maxW=1920
-    maxH=1080
+    maxW=1920//2
+    maxH=1080//2
     while True:
         if updateFlag==True:
             file = os.path.join(inputDir, annotation[annotIdx]['fname'])
@@ -161,7 +156,7 @@ def main(args):
                 drawingFlag=False
                 roiIdx = len(annotation[annotIdx])-1
                 clsId = key-ord('0')
-                roi = [x0, y0, g_mouseX, g_mouseY]
+                roi = [x0, y0, g_mouseX, g_mouseY, scale]
                 annotation[annotIdx]['roi_{}_{}'.format(roiIdx, clsId)] = roi
                 print('marked a ROI \'{} {}\''.format(clsId, roi))
 
@@ -188,26 +183,23 @@ def main(args):
             print('next image \'{}\''.format(annotation[annotIdx]['fname']))
         
         if key==ord('W'):
-            try:
-                os.mkdir(args.output)
-            except FileExistsError:
-                pass
+            os.makedirs(args.output, exist_ok=True)
             for annot in annotation:
                 fname = annot['fname']
                 for roi in annot:
                     if 'roi' in roi:
                         _,_,clsId = roi.split('_')
-                        x0,y0,x1,y1 = annot[roi]
-                        x0*=scale
-                        y0*=scale
-                        x1*=scale
-                        y1*=scale
+                        x0,y0,x1,y1,s = annot[roi]
+                        x0*=s
+                        y0*=s
+                        x1*=s
+                        y1*=s
                         os.makedirs(os.path.join(args.output, str(clsId)), exist_ok=True)
                         inPath = os.path.join(args.input, fname)
                         outPath = os.path.join(args.output, str(clsId), fileNameEncode(fname, x1-x0+1, y1-y0+1, x0, y0))
                         shutil.copy(inPath, outPath)
             print('Wrote the current ROI data to the output directory {}'.format(args.output))
-        
+
         if key==ord('c'):
             cursorInfoFlag = True if cursorInfoFlag==False else False
 

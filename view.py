@@ -22,19 +22,15 @@ def fileNameDecode(fileName):
     return int(w), int(h), int(x), int(y), base+ext
 
 def fitImage(img, maxW=1920, maxH=1080):
+    maxW *= 0.5
+    maxH *= 0.5
     h,w,_ = img.shape
-    if h>maxH or w>maxW:
-        # shrink
-        if w>maxW:  scaleX = w/maxW
-        else:       scaleX = 1.0
-        if h>maxH:  scaleY = h/maxH
-        else:       scaleY = 1.0
-        scale = scaleX if scaleX>scaleY else scaleY
-    else:
-        # enlarge
-        scaleX = 1./(maxW//w)
-        scaleY = 1./(maxH//h)
-        scale = scaleX if scaleX>scaleY else scaleY
+    scaleX = maxW / w
+    scaleY = maxH / h
+    if scaleX>1 or scaleY>1:    # Shrink
+        scale = 1/min(scaleX, scaleY)
+    else:                       # Enlarge
+        scale = 1/max(scaleX, scaleY)
     if scale != 1.0:
         img = cv2.resize(img, None, fx=1./scale, fy=1./scale, interpolation=cv2.INTER_CUBIC)
     return img, scale
