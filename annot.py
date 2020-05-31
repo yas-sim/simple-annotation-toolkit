@@ -84,7 +84,6 @@ def fitImage(img, maxW=1920, maxH=1080):
         scale = 1/min(scaleX, scaleY)
     else:                       # Enlarge
         scale = 1/max(scaleX, scaleY)
-
     if scale != 1.0:
         img = cv2.resize(img, None, fx=1./scale, fy=1./scale, interpolation=cv2.INTER_CUBIC)
     return img, scale

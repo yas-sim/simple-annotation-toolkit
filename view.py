@@ -22,8 +22,6 @@ def fileNameDecode(fileName):
     return int(w), int(h), int(x), int(y), base+ext
 
 def fitImage(img, maxW=1920, maxH=1080):
-    maxW *= 0.5
-    maxH *= 0.5
     h,w,_ = img.shape
     scaleX = maxW / w
     scaleY = maxH / h
