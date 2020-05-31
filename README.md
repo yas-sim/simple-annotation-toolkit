@@ -18,7 +18,7 @@ This tool doesn't use any (complex and diffucult) database. It simply uses the f
 All tool are Python scripts. Just run them.
 
 ### Key bindings - annot.py  
-`Mouse`: move cursor (L-button and R-button on the mouse won't be used. use numeric keys '0-9' to start/stop drawing a ROI)
+`Mouse`: move cursor (L-button and R-button on the mouse won't be used. use numeric keys '0-9' to start/stop drawing a ROI)  
 `q`: previous image  
 `w`: next image  
 `u`: undo (remove the last ROI in current image)  
