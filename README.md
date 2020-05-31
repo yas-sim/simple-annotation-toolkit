@@ -16,3 +16,12 @@ This tool doesn't use any (complex and diffucult) database. It simply uses the f
 ## How to Run
 
 All tool are Python scripts. Just run them.
+
+### Key bindings - annot.py
+`q`: previous image
+`w`: next image
+`u`: undo (remove the last ROI in current image)
+`0`-`9`: start / end of ROI (hit numeric key to start drawing ROI and hit numeric key to finish drawing. no need to keep pressing)
+`W`: (capital) write annotation data to the output directory
+`c`: toggle cursor info (x, y, color on the cursor)
+`ESC`: exit program
